@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-
-import '../../data/repositories/auth_repository.dart';
+import 'package:photo_in_app/data/repositories/auth_repository.dart';
 import 'login_controller.dart';
 
 class LoginBinding extends Bindings {
