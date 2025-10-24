@@ -71,8 +71,12 @@ class _PostPhotoDialogState extends State<PostPhotoDialog> {
       caption: captionController.text.trim(),
     );
 
-    if (success && mounted) {
-      Get.back<void>();
+    if (success) {
+      if (!mounted) {
+        return;
+      }
+      Navigator.of(context, rootNavigator: true).pop();
+      return;
     }
 
     if (mounted) {
@@ -172,4 +176,3 @@ class _PostPhotoDialogState extends State<PostPhotoDialog> {
     );
   }
 }
-

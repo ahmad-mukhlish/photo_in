@@ -101,6 +101,11 @@ class PostRemoteDataSource {
         'photo_url': photoUrl,
         'caption': caption,
       },
+      options: Options(
+        headers: const {
+          Headers.contentTypeHeader: Headers.jsonContentType,
+        },
+      ),
     );
 
     final data = response.data;
