@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
-
+import 'package:get/get.dart';
 import '../network/dio_extra_keys.dart';
 import '../repositories/auth_repository.dart';
+import '../../routes/app_routes.dart';
 
 class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
   AuthTokenInterceptor({
@@ -91,10 +92,23 @@ class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
   }
 
   Future<void> _refreshTokens() {
-    _refreshFuture ??= _authRepository
-        .refreshSession()
-        .whenComplete(() => _refreshFuture = null);
+    _refreshFuture ??= _attemptRefresh().whenComplete(() => _refreshFuture = null);
     return _refreshFuture!;
   }
-}
 
+  Future<void> _attemptRefresh() async {
+    try {
+      await _authRepository.refreshSession();
+    } on AuthException {
+      await _handleExpiredSession();
+      rethrow;
+    }
+  }
+
+  Future<void> _handleExpiredSession() async {
+    await _authRepository.logout();
+    if (Get.currentRoute != Routes.login) {
+      Get.offAllNamed(Routes.login);
+    }
+  }
+}
