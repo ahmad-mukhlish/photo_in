@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 
-import '../data/repositories/auth_repository.dart';
+import '../data/repositories/auth_repository.dart'
+    show AuthRepository, AuthUnauthorizedException;
 import 'app_routes.dart';
 
 class AppBinding extends Bindings {
@@ -38,29 +39,33 @@ class AppBinding extends Bindings {
           handler.next(options);
         },
         onError: (error, handler) async {
+          final requestOptions = error.requestOptions;
           final shouldAttemptRefresh = error.response?.statusCode == 401 &&
-              error.requestOptions.extra['skip_auth'] != true &&
-              error.requestOptions.extra['retry_attempted'] != true;
+              requestOptions.extra['skip_auth'] != true &&
+              requestOptions.extra['retry_attempted'] != true;
 
           if (!shouldAttemptRefresh) {
             handler.next(error);
             return;
           }
 
+          requestOptions.extra['retry_attempted'] = true;
+
           try {
             await authRepository.refreshSession();
-
-            final retryOptions = error.requestOptions;
-            retryOptions.extra['retry_attempted'] = true;
-
-            final response = await dio.fetch<dynamic>(retryOptions);
+            final response = await dio.fetch<dynamic>(requestOptions);
             handler.resolve(response);
-          } catch (_) {
-            await authRepository.logout();
-            if (Get.currentRoute != Routes.login) {
-              Get.offAllNamed(Routes.login);
+          } catch (refreshError) {
+            if (refreshError is AuthUnauthorizedException) {
+              await authRepository.logout();
+              if (Get.currentRoute != Routes.login) {
+                Get.offAllNamed(Routes.login);
+              }
             }
+
             handler.next(error);
+          } finally {
+            requestOptions.extra.remove('retry_attempted');
           }
         },
       ),

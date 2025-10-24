@@ -14,6 +14,10 @@ class AuthException implements Exception {
   String toString() => message;
 }
 
+class AuthUnauthorizedException extends AuthException {
+  const AuthUnauthorizedException(String message) : super(message);
+}
+
 class AuthRepository {
   AuthRepository(this._dio);
 
@@ -139,8 +143,11 @@ class AuthRepository {
       );
 
     } on DioException catch (error) {
-      await _clearTokens();
-      throw AuthException(_extractDioErrorMessage(error));
+      final message = _extractDioErrorMessage(error);
+      if (error.response?.statusCode == 401) {
+        throw AuthUnauthorizedException(message);
+      }
+      throw AuthException(message);
     }
   }
 
