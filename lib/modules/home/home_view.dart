@@ -10,37 +10,59 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Home'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(
-                icon: Icon(Icons.photo_library_outlined),
-                text: 'Feed',
-              ),
-              Tab(
-                icon: Icon(Icons.person_outline),
-                text: 'Account',
-              ),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Photo In'),
+        actions: [
+          Obx(
+            () {
+              final isProcessing = controller.isProcessing.value;
+              return PopupMenuButton<_HomeMenuAction>(
+                onSelected: (action) {
+                  if (action == _HomeMenuAction.logout && !isProcessing) {
+                    controller.logout();
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem<_HomeMenuAction>(
+                    enabled: !isProcessing,
+                    value: _HomeMenuAction.logout,
+                    child: Text(isProcessing ? 'Logging out...' : 'Log out'),
+                  ),
+                ],
+              );
+            },
           ),
-        ),
-        body: TabBarView(
-          children: [
-            _FeedTab(controller: controller),
-            _AccountTab(controller: controller),
-          ],
+        ],
+      ),
+      body: _FeedBody(controller: controller),
+      floatingActionButton: Obx(
+        () => FloatingActionButton.extended(
+          onPressed: controller.isPosting.value ? null : controller.postPhoto,
+          icon: controller.isPosting.value
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
+              : const Icon(Icons.add_a_photo_outlined),
+          label: Text(
+            controller.isPosting.value ? 'Preparing...' : 'Post photo',
+          ),
         ),
       ),
     );
   }
 }
 
-class _FeedTab extends StatelessWidget {
-  const _FeedTab({required this.controller});
+enum _HomeMenuAction {
+  logout,
+}
+
+class _FeedBody extends StatelessWidget {
+  const _FeedBody({required this.controller});
 
   final HomeController controller;
 
@@ -227,40 +249,6 @@ class _FeedImageError extends StatelessWidget {
           Icons.broken_image_outlined,
           color: theme.colorScheme.error,
         ),
-      ),
-    );
-  }
-}
-
-class _AccountTab extends StatelessWidget {
-  const _AccountTab({required this.controller});
-
-  final HomeController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Welcome to Photo In App'),
-          const SizedBox(height: 24),
-          Obx(
-            () => FilledButton.icon(
-              onPressed: controller.isProcessing.value ? null : controller.logout,
-              icon: controller.isProcessing.value
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.logout),
-              label: Text(
-                controller.isProcessing.value ? 'Logging out...' : 'Log out',
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

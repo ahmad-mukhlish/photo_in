@@ -14,6 +14,7 @@ class HomeController extends GetxController {
   final AuthRepository _authRepository;
   final PostRepository _postRepository;
   final isProcessing = false.obs;
+  final isPosting = false.obs;
   final posts = <Post>[].obs;
   final isFeedLoading = false.obs;
   final feedError = RxnString();
@@ -62,6 +63,23 @@ class HomeController extends GetxController {
       }
     } finally {
       isFeedLoading.value = false;
+    }
+  }
+
+  Future<void> postPhoto() async {
+    if (isPosting.value) {
+      return;
+    }
+
+    isPosting.value = true;
+    try {
+      Get.snackbar(
+        'Post photo',
+        'Photo upload is not available yet.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isPosting.value = false;
     }
   }
 
