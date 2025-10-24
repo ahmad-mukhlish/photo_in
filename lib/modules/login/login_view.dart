@@ -33,13 +33,22 @@ class LoginView extends GetView<LoginController> {
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
-                  controller: controller.emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: controller.usernameController,
+                  keyboardType: TextInputType.text,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Username',
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your username';
+                    }
+                    if (value.trim().length < 3) {
+                      return 'Username must be at least 3 characters';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 Obx(

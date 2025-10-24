@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:photo_in_app/data/repositories/auth_repository.dart';
 import 'package:photo_in_app/routes/app_pages.dart';
 
 class LoginController extends GetxController {
-  final emailController = TextEditingController();
+  LoginController(this._authRepository);
+
+  final AuthRepository _authRepository;
+
+  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final isObscured = true.obs;
@@ -18,12 +23,29 @@ class LoginController extends GetxController {
       return;
     }
 
+    FocusManager.instance.primaryFocus?.unfocus();
     isLoading.value = true;
 
     try {
-      // Fake network delay to mimic auth call while backend is not ready yet.
-      await Future<void>.delayed(const Duration(seconds: 1));
+      await _authRepository.login(
+        username: usernameController.text.trim(),
+        password: passwordController.text,
+      );
       Get.offAllNamed(AppPages.home);
+    } on AuthException catch (error, stacktrace) {
+      Get.snackbar(
+        'Login failed',
+        "${error.message} $stacktrace",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (error, stacktrace) {
+      print("$error \n $stacktrace");
+
+      Get.snackbar(
+        'Login failed',
+        '$error \n $stacktrace',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -31,7 +53,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    emailController.dispose();
+    usernameController.dispose();
     passwordController.dispose();
     super.onClose();
   }
