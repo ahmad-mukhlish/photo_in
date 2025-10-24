@@ -99,7 +99,7 @@ class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
   Future<void> _attemptRefresh() async {
     try {
       await _authRepository.refreshSession();
-    } on AuthException {
+    } catch (_) {
       await _handleExpiredSession();
       rethrow;
     }

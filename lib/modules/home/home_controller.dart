@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/post.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/post_repository.dart';
 import '../../routes/app_routes.dart';
+import 'widgets/post_photo_dialog.dart';
 
 class HomeController extends GetxController {
   HomeController(
@@ -71,13 +73,47 @@ class HomeController extends GetxController {
       return;
     }
 
+    await Get.dialog<void>(
+      PostPhotoDialog(controller: this),
+      barrierDismissible: true,
+    );
+  }
+
+  Future<bool> submitPost({
+    required XFile photo,
+    required String caption,
+  }) async {
+    if (isPosting.value) {
+      return false;
+    }
+
     isPosting.value = true;
     try {
+      final createdPost = await _postRepository.createPost(
+        photo: photo,
+        caption: caption,
+      );
+      posts.insert(0, createdPost);
       Get.snackbar(
-        'Post photo',
-        'Photo upload is not available yet.',
+        'Photo posted',
+        'Your photo has been shared.',
         snackPosition: SnackPosition.BOTTOM,
       );
+      return true;
+    } on FeedException catch (error) {
+      Get.snackbar(
+        'Upload failed',
+        error.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    } catch (_) {
+      Get.snackbar(
+        'Upload failed',
+        'Unexpected error occurred while uploading photo.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
     } finally {
       isPosting.value = false;
     }
