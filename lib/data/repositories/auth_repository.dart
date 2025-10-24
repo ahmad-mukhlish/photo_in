@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/storage_keys.dart';
-import '../network/dio_extra_keys.dart';
 
 class AuthException implements Exception {
   const AuthException(this.message);
@@ -109,7 +108,7 @@ class AuthRepository {
             'Authorization': 'Bearer $refreshToken',
           },
           extra: const {
-            DioExtraKeys.skipAuth: true,
+            'skip_auth': true,
           },
         ),
       );

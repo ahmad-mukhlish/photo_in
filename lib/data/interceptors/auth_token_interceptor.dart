@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
-import '../network/dio_extra_keys.dart';
 import '../repositories/auth_repository.dart';
 import '../../routes/app_routes.dart';
 
@@ -18,7 +17,7 @@ class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.extra[DioExtraKeys.skipAuth] == true) {
+    if (options.extra['skip_auth'] == true) {
       handler.next(options);
       return;
     }
@@ -42,7 +41,7 @@ class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
       await _refreshTokens();
 
       final retryOptions = err.requestOptions;
-      retryOptions.extra[DioExtraKeys.retryAttempted] = true;
+      retryOptions.extra['retry_attempted'] = true;
 
       final response = await _dio.fetch<dynamic>(retryOptions);
       handler.resolve(response);
@@ -75,11 +74,11 @@ class AuthTokenInterceptor extends QueuedInterceptorsWrapper {
     }
 
     final options = err.requestOptions;
-    if (options.extra[DioExtraKeys.skipAuth] == true) {
+    if (options.extra['skip_auth'] == true) {
       return false;
     }
 
-    if (options.extra[DioExtraKeys.retryAttempted] == true) {
+    if (options.extra['retry_attempted'] == true) {
       return false;
     }
 
