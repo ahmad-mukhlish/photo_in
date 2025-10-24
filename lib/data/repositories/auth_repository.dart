@@ -73,10 +73,13 @@ class AuthRepository {
 
   Future<void> _persistTokens({
     required String accessToken,
-    required String refreshToken,
+    String? refreshToken,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(StorageKeys.accessToken, accessToken);
+
+    if (refreshToken == null) return;
+
     await prefs.setString(StorageKeys.refreshToken, refreshToken);
   }
 
@@ -127,16 +130,15 @@ class AuthRepository {
       }
 
       final accessToken = tokenPayload['access_token'] as String?;
-      final newRefreshToken = tokenPayload['refresh_token'] as String?;
 
-      if (accessToken == null || newRefreshToken == null) {
+      if (accessToken == null) {
         throw const AuthException('Authentication tokens missing in response.');
       }
 
       await _persistTokens(
         accessToken: accessToken,
-        refreshToken: newRefreshToken,
       );
+
     } on DioException catch (error) {
       await _clearTokens();
       throw AuthException(_extractDioErrorMessage(error));
