@@ -37,19 +37,9 @@ class LoginView extends GetView<LoginController> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: 'Username',
+                    prefixIcon: Icon(Icons.person),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    final emailPattern = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                    if (!emailPattern.hasMatch(value)) {
-                      return 'Enter a valid email address';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
                 Obx(
@@ -99,10 +89,6 @@ class LoginView extends GetView<LoginController> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("Don't have an account? Create one"),
-                ),
               ],
             ),
           ),
