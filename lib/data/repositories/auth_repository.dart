@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/storage_keys.dart';
+import '../network/dio_extra_keys.dart';
 
 class AuthException implements Exception {
   const AuthException(this.message);
@@ -79,7 +80,100 @@ class AuthRepository {
     await prefs.setString(StorageKeys.refreshToken, refreshToken);
   }
 
+  Future<String?> getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(StorageKeys.accessToken);
+  }
+
+  Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(StorageKeys.refreshToken);
+  }
+
+  Future<void> refreshSession() async {
+    final refreshToken = await getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      await _clearTokens();
+      throw const AuthException('No refresh token available.');
+    }
+
+    try {
+      final response = await _dio.put<dynamic>(
+        '/session',
+        options: Options(
+          headers: {
+            Headers.contentTypeHeader: Headers.textPlainContentType,
+            'Authorization': 'Bearer $refreshToken',
+          },
+          extra: const {
+            DioExtraKeys.skipAuth: true,
+          },
+        ),
+      );
+
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw const AuthException('Unexpected response from server.');
+      }
+
+      if (data['ok'] != true) {
+        final message = data['message'] as String?;
+        throw AuthException(message ?? 'Unable to refresh session. Please log in again.');
+      }
+
+      final tokenPayload = data['data'];
+      if (tokenPayload is! Map<String, dynamic>) {
+        throw const AuthException('Unable to read authentication tokens.');
+      }
+
+      final accessToken = tokenPayload['access_token'] as String?;
+      final newRefreshToken = tokenPayload['refresh_token'] as String?;
+
+      if (accessToken == null || newRefreshToken == null) {
+        throw const AuthException('Authentication tokens missing in response.');
+      }
+
+      await _persistTokens(
+        accessToken: accessToken,
+        refreshToken: newRefreshToken,
+      );
+    } on DioException catch (error) {
+      await _clearTokens();
+      throw AuthException(_extractDioErrorMessage(error));
+    }
+  }
+
   Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString(StorageKeys.accessToken);
+    final refreshToken = prefs.getString(StorageKeys.refreshToken);
+
+    try {
+      if (accessToken != null || refreshToken != null) {
+        await _dio.delete<dynamic>(
+          '/session',
+          data: refreshToken == null
+              ? null
+              : jsonEncode({
+                  'refresh_token': refreshToken,
+                }),
+          options: Options(
+            headers: {
+              Headers.contentTypeHeader: Headers.textPlainContentType,
+              if (accessToken != null)
+                'Authorization' : 'Bearer $accessToken',
+            },
+          ),
+        );
+      }
+    } on DioException catch (error) {
+      throw AuthException(_extractDioErrorMessage(error));
+    } finally {
+      await _clearTokens();
+    }
+  }
+
+  Future<void> _clearTokens() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(StorageKeys.accessToken);
     await prefs.remove(StorageKeys.refreshToken);
