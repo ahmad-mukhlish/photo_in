@@ -18,7 +18,8 @@ class HomeController extends GetxController {
     try {
       await _authRepository.logout();
       Get.offAllNamed(Routes.login);
-    } catch (_) {
+    } catch (e,s) {
+      print("$e $s");
       Get.snackbar(
         'Logout failed',
         'Unable to log out. Please try again.',

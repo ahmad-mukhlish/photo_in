@@ -144,33 +144,7 @@ class AuthRepository {
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString(StorageKeys.accessToken);
-    final refreshToken = prefs.getString(StorageKeys.refreshToken);
-
-    try {
-      if (accessToken != null || refreshToken != null) {
-        await _dio.delete<dynamic>(
-          '/session',
-          data: refreshToken == null
-              ? null
-              : jsonEncode({
-                  'refresh_token': refreshToken,
-                }),
-          options: Options(
-            headers: {
-              Headers.contentTypeHeader: Headers.textPlainContentType,
-              if (accessToken != null)
-                'Authorization' : 'Bearer $accessToken',
-            },
-          ),
-        );
-      }
-    } on DioException catch (error) {
-      throw AuthException(_extractDioErrorMessage(error));
-    } finally {
-      await _clearTokens();
-    }
+    await _clearTokens();
   }
 
   Future<void> _clearTokens() async {
