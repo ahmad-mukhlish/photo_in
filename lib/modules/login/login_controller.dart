@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:photo_in_app/data/repositories/auth_repository.dart';
-import 'package:photo_in_app/routes/app_pages.dart';
+
+import '../../data/repositories/auth_repository.dart';
+import '../../routes/app_routes.dart';
 
 class LoginController extends GetxController {
   LoginController(this._authRepository);
@@ -31,19 +32,17 @@ class LoginController extends GetxController {
         username: usernameController.text.trim(),
         password: passwordController.text,
       );
-      Get.offAllNamed(AppPages.home);
-    } on AuthException catch (error, stacktrace) {
+      Get.offAllNamed(Routes.home);
+    } on AuthException catch (error) {
       Get.snackbar(
         'Login failed',
-        "${error.message} $stacktrace",
+        error.message,
         snackPosition: SnackPosition.BOTTOM,
       );
-    } catch (error, stacktrace) {
-      print("$error \n $stacktrace");
-
+    } catch (_) {
       Get.snackbar(
         'Login failed',
-        '$error \n $stacktrace',
+        'Unexpected error occurred. Please try again.',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {

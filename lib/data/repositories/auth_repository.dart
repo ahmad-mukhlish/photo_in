@@ -79,6 +79,12 @@ class AuthRepository {
     await prefs.setString(StorageKeys.refreshToken, refreshToken);
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(StorageKeys.accessToken);
+    await prefs.remove(StorageKeys.refreshToken);
+  }
+
   String _extractDioErrorMessage(DioException error) {
     const fallbackMessage = 'Unable to log in. Please try again.';
     final responseData = error.response?.data;
