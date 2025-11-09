@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_in_app/feature/login/controller/login_binding.dart';
 import 'package:photo_in_app/routes/app_pages.dart';
+import 'package:photo_in_app/services/network/api_service.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  Get.putAsync<ApiService>(() => ApiService().init(), permanent: true);
+
   runApp(const MyApp());
 }
 
