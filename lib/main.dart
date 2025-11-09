@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_in_app/feature/login/controller/login_binding.dart';
+import 'package:photo_in_app/routes/app_pages.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,6 +35,8 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       initialBinding: LoginBinding(),
+      initialRoute: AppPages.initial,
+      getPages: AppPages.routes,
     );
   }
 }
